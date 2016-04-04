@@ -1,5 +1,8 @@
-/* Sun Mar 27 09:58:24 JST 2016
-  kk@ise.chuo-u.ac.jp
+/* Sun Mar 27 09:54:53 JST 2016 
+ Revised code of original in 
+   K.Kubota and M.Iri:Automatic Differentiation of Algorithms and Applications,
+   Corona, Tokyo, 1998, ISBN 4-339-02602-6. (in Japanese) 
+ kk@ise.chuo-u.ac.jp
 */
 #ifndef DEFINE_MAXMEM
 const int MAXMEM = 32768*256;

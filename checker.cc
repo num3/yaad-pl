@@ -1,6 +1,5 @@
-/*
-  Mon Apr  4 19:13:14 JST 2016
-  kk@ise.chuo-u.ac.jp
+/* Sun Mar 27 09:54:53 JST 2016 
+ kk@ise.chuo-u.ac.jp
 
  du = U * dx + L * dv  ==>   du = (I - LS)^(-1) * U * dx
  dv = S * du
