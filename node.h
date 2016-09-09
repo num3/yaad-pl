@@ -38,6 +38,7 @@ public:
 	void set_dfsp(Node<T>* p){this->dfsp=p;}
 	T get_val() const {return val;}
 	T get_d_val() const {return d_val;}
+	FTD<T> get_hd_val() const {return hd_val;}
 static void dfs(Node<T>*p);
 static void h_dfs(Node<T>*p);
 static void memfree_dfs(Node<T>*p);

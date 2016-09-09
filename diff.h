@@ -32,7 +32,7 @@ void    Node<T>::dfs_body(Node<T>* p, int sw)
         //else if(sw == 1) p->hd_val = 0.0; /* Initialize */
 		//std::cout<<"op="<<std::hex<<(p->op)<<std::endl;
 		if(sw==0) p->set_d_val( T(0.0) );
-		else if(sw==1) p->set_hd_val( T(0.0) );
+		else if(sw==1) { p->set_hd_val( FTD<T>(0.0) ); }
 
         if(endpoint_ops(p->op)) {
                 /* */
@@ -197,11 +197,10 @@ void Node<T>::spread_derivatives(Node<T>* p)
         case OP_FABS:
 				{ UNode<T>* q = (UNode<T>*)p;
                   double eps=1.0e-8;
-				  std::cout<<"OP_FABS q->val="<<q->val<<"  ";
-				  if(q->val > eps) q->arg1->d_val += p->d_val;
-				  if(q->val < -eps) q->arg1->d_val += - p->d_val;
-				  if(fabs(q->val) <= eps) {
-				  //if(fabs(q->val) == 0.0 ) {
+				  std::cout<<"OP_FABS q->arg1->val="<<q->arg1->val<<"  ";
+				  if(q->arg1->val > eps) q->arg1->d_val += p->d_val;
+				  else if(q->arg1->val < -eps) q->arg1->d_val += - p->d_val;
+				  else if(fabs(q->arg1->val) <= eps) {
 					std::cout<<" critical point q->val="<<q->val;
 					Node<T>::push_fabs_nodes(q);
 					Node<T>::push_fabs_arg_nodes(q->get_arg1());
@@ -210,7 +209,7 @@ void Node<T>::spread_derivatives(Node<T>* p)
 				}
                 break;
         default:
-                std::cerr<<"spread_derivatives: Unknown op\n";
+                std::cerr<<"spread_derivatives: Unknown op ="<<op<<"\n";
         }
 }
 
@@ -246,15 +245,16 @@ void Node<T>::h_spread_derivatives(Node<T>* p)
                   q->arg1->hd_val += (-1.0)* p->hd_val; } break;
         case OP_MUL:
                 { BNode<T>* q = (BNode<T>*)p;
-                  q->arg1->hd_val += p->hd_val * q->arg2;
-                  q->arg2->hd_val += p->hd_val * q->arg1; } break;
+                  q->arg1->hd_val += p->hd_val * FTD<T>(q->arg2);
+                  q->arg2->hd_val += p->hd_val * FTD<T>(q->arg1); 
+				} break;
         case OP_MULL:
         case OP_MULR:
                 { BUNode<T>* q = (BUNode<T>*)p;
                   q->arg1->hd_val += p->hd_val * q->argval; } break;
         case OP_DIV:
                 { BNode<T>* q = (BNode<T>*)p;
-                  FTD<T> tmp = p->hd_val / q->arg2; 
+                  FTD<T> tmp = p->hd_val / FTD<T>(q->arg2); 
                   q->arg1->hd_val += tmp;
                   q->arg2->hd_val += (-1.0)* tmp * FTD<T>(p) ; } break;
         case OP_DIVL:
@@ -262,7 +262,7 @@ void Node<T>::h_spread_derivatives(Node<T>* p)
                   q->arg1->hd_val += p->hd_val / q->argval; } break;
         case OP_DIVR:
                 { BUNode<T>* q = (BUNode<T>*)p;
-                  q->arg1->hd_val += (-1.0)* p->hd_val * FTD<T>(p) / q->arg1;
+                  q->arg1->hd_val += (-1.0)* p->hd_val * FTD<T>(p) / FTD<T>(q->arg1);
                 }
                 break;
         case OP_UPLUS:
@@ -273,15 +273,29 @@ void Node<T>::h_spread_derivatives(Node<T>* p)
                   q->arg1->hd_val += (-1.0)* p->hd_val; } break;
         case OP_SQRT:
                 { UNode<T>* q = (UNode<T>*)p;
-                  q->arg1->hd_val += p->hd_val / (2 * FTD<T>(p)); } break;
+                  q->arg1->hd_val += p->hd_val / (2.0 * FTD<T>(p)); } break;
         case OP_EXP:
                 { UNode<T>* q = (UNode<T>*)p;
                   q->arg1->hd_val += p->hd_val * FTD<T>(p); } break;
         case OP_LOG:
                 { UNode<T>* q = (UNode<T>*)p;
-                  q->arg1->hd_val += p->hd_val / q->arg1; } break;
+                  q->arg1->hd_val += p->hd_val / FTD<T>(q->arg1); } break;
+		case OP_FABS:
+				{ UNode<T>* q = (UNode<T>*)p;
+                  double eps=1.0e-8;
+				  std::cout<<"h:OP_FABS q->arg1->hd_val="<<q->arg1->hd_val<<"  ";
+				  std::cout<<"h:OP_FABS q->arg1->val="<<q->arg1->val<<"  ";
+				  if(q->arg1->val > eps) q->arg1->hd_val += q->hd_val;
+				  else if(q->arg1->val < -eps) q->arg1->hd_val += - q->hd_val;
+				  else if(fabs(q->val) <= eps) {
+					std::cout<<"h:critical point q->val="<<q->val;
+					q->arg1->hd_val += fabs( p->hd_val );
+				  }
+				  std::cout<<std::endl;
+				}
+				break;
         default:
-                std::cerr<<"h_spread_derivatives: Unknown op\n";
+                std::cerr<<"h_spread_derivatives: Unknown op="<<op<<"\n";
         }
 }
 

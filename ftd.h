@@ -50,7 +50,7 @@ public:
 	~FTD(void){ }
 	FTD(T x){ val = x; active = F_InActive; }
 	FTD(int x){ val = x; active = F_InActive; }
-	FTD(Node<T>* pp){ p = pp; active = F_Active; }
+	FTD(Node<T>* pp, int flag=F_Active ){ p = pp; active = flag; }
 
 	void set_indep(void){
 		T tmp;
@@ -68,10 +68,14 @@ public:
 	}
 	void h_diff(void){
 		if(active == F_Active) {
-			Node<T>::h_dfs(p); p->set_hd_val(T(1.0)); Node<T>::h_rdfs(p); }
+			Node<T>::h_dfs(p); 
+			FTD<T>one(1.0); one.set_indep();
+			p->set_hd_val(one); 
+			Node<T>::h_rdfs(p); 
+		}
 	}
 	FTD<T> get_hd_val(void){ return this->p->get_hd_val(); }
-	T get_d_val(void){ return this->p->get_d_val(); }
+	T get_d_val(void) const { return this->p->get_d_val(); }
 	void set_d_val(T v=T()){ this->p->set_d_val(v); }
 	T get_val(void) const {
 		if(active == F_Active) return this->p->get_val();
@@ -147,18 +151,18 @@ FTD<T> operator+(const T& x, const FTD<T>& y){
 }
 
 template<typename T>
-FTD<T> operator+=(const FTD<T>& x, const FTD<T>& y){
+FTD<T>&operator+=(FTD<T>&x, const FTD<T>& y){ 
 	if( x.is_active() && y.is_active() ) {
 		x = newBNode<T>(OP_ADD, x.get_val()+y.get_val(), x.get_p(), y.get_p());
 		return x;
-	} else if(x.is_acitive() ){
+	} else if( x.is_active() ){
 		x = newBUNode<T>(OP_ADDL, x.get_val() + y.get_val(), x.get_p(), y.get_val());
 		return x;
-	} else if(y.is_acitive() ){
+	} else if(y.is_active() ){
 		x = newBUNode<T>(OP_ADDR, x.get_val() + y.get_val(), y.get_p(), x.get_val());
 		return x;
 	} else {
-		x = FTD<T>(x.val + y.val);
+		x = FTD<T>(x.get_val() + y.get_val());
 		return x;
 	}
 }
@@ -176,7 +180,8 @@ FTD<T> operator-(const FTD<T>& x, const FTD<T>& y){
 	}
 }
 template<typename T>
-FTD<T> operator-(const FTD<T>& x, T& y){
+FTD<T> operator-(const FTD<T>& x, const T y){
+	//std::cout<<"SUBL:"<<std::endl;
 	if(x.is_active() ){
 		return newBUNode<T>(OP_SUBL, x.get_val()-y,x.get_p(), y);
 	} else {
@@ -184,7 +189,8 @@ FTD<T> operator-(const FTD<T>& x, T& y){
 	}
 }
 template<typename T>
-FTD<T> operator-(const T& x, const FTD<T>& y){
+FTD<T> operator-(const T  x, const FTD<T>& y){
+	//std::cout<<"SUBR:"<<std::endl;
 	if(y.is_active() ){
 		return newBUNode<T>(OP_SUBR, x - y.get_val(), y.get_p(), x);
 	} else {
@@ -209,7 +215,7 @@ FTD<T> operator*(const T& x, const FTD<T>& y){
 	if(y.is_active() ){
 		return newBUNode<T>(OP_MULR, x * y.get_val(), y.get_p(), x);
 	} else {
-		return FTD<T>(x * y);
+		return FTD<T>(x * y.get_val() );
 	}
 }
 template<typename T>
@@ -217,7 +223,7 @@ FTD<T> operator*(const FTD<T>& x, const T& y){
 	if(x.is_active() ){
 		return newBUNode<T>(OP_MULL, x.get_val() * y, x.get_p(), y);
 	} else {
-		return FTD<T>(x * y);
+		return FTD<T>(x.get_val() * y);
 	}
 }
 
@@ -231,6 +237,22 @@ FTD<T> operator/(const FTD<T>& x, const FTD<T>& y){
 		return newBUNode<T>(OP_DIVR, x.get_val() / y.get_val(), y.get_p(), x.get_val());
 	} else {
 		return FTD<T>(x.get_val() / y.get_val());
+	}
+}
+template<typename T>
+FTD<T> operator/(const FTD<T>& x, const T& y){
+	if(x.is_active() ){
+		return newBUNode<T>(OP_DIVL, x.get_val() / y, x.get_p(), y);
+	} else {
+		return FTD<T>(x.get_val() / y);
+	}
+}
+template<typename T>
+FTD<T> operator/(const T& x, const FTD<T>& y){
+	if(y.is_active() ){
+		return newBUNode<T>(OP_DIVR, x / y.get_val(), y.get_p(), x);
+	} else {
+		return FTD<T>(x / y.get_val());
 	}
 }
 
@@ -272,9 +294,9 @@ int operator>=(const FTD<T>& x, const FTD<T>& y){
 template<typename T>
 FTD<T> sqrt(const FTD<T>& x){
 	if(x.is_active()) {
-		return newUNode<T>(OP_SQRT, sqrt(x.p->val), x.p);
+		return newUNode<T>(OP_SQRT, sqrt(x.get_p()->get_val()), x.get_p());
 	} else {
-		return FTD<T>(sqrt(x.val));
+		return FTD<T>(sqrt(x.get_val()));
 	}
 }
 template<typename T>
@@ -295,6 +317,7 @@ FTD<T> log(const FTD<T>& x){
 }
 template<typename T>
 FTD<T> fabs(const FTD<T>& x){
+	std::cout<<"FABS: x="<<x<<std::endl;
 	if(x.is_active() ) {
 		return newUNode<T>(OP_FABS, fabs(x.get_val()), x.get_p());
 	} else {
@@ -304,7 +327,7 @@ FTD<T> fabs(const FTD<T>& x){
 
 template<typename T>
 std::ostream&operator<<(std::ostream&s, const FTD<T>&x){
-	if(x.active == F_Active) s<<"("<<x.p->val<<", "<<x.p->d_val<<") ";
-	else s<<x.val<<" ";
+	if(x.is_active()) s<<"("<<x.get_val()<<", "<<x.get_d_val()<<") ";
+	else s<<x.get_val()<<" ";
 	return s;
 }
