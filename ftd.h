@@ -302,7 +302,7 @@ FTD<T> sqrt(const FTD<T>& x){
 template<typename T>
 FTD<T> exp(const FTD<T>& x){
 	if(x.is_active()) {
-		return newUNode<T>(OP_EXP, exp(x.p->val), x.p);
+		return newUNode<T>(OP_EXP, exp(x.get_p()->get_val()), x.get_p());
 	} else {
 		return FTD<T>(exp(x.val));
 	}
@@ -310,7 +310,7 @@ FTD<T> exp(const FTD<T>& x){
 template<typename T>
 FTD<T> log(const FTD<T>& x){
 	if(x.active == F_Active) {
-		return newUNode<T>(OP_LOG, exp(x.p->val), x.p);
+		return newUNode<T>(OP_LOG, exp(x.get_p()->get_val()), x.get_p());
 	} else {
 		return FTD<T>(exp(x.val));
 	}

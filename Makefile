@@ -4,6 +4,7 @@
 TARGETS=ex1ad ex2ad checker
 LIBS=-lglpk
 CXXFLAGS=-std=c++11
+CXX=LD_LIBRARY_PATH=/opt/local/test2/lib /opt/local/test2/bin/g++
 
 all: $(TARGETS)
 	make example1
